@@ -19,7 +19,7 @@
   "author": "Diego Zuluaga",
   "license": "ISC",
   "dependencies": {
-    "apigee-sdk-mgmt-api": "^1.1.0",
+    "apigee-sdk-mgmt-api": "*",
     "async": "^0.9.0",
     "blanket": "^1.1.6",
     "chai": "^1.9.1",
