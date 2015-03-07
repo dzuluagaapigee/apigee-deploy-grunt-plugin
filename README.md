@@ -1,5 +1,12 @@
+[![Build Status](https://travis-ci.org/apigeecs/apigee-deploy-grunt-plugin.svg?branch=master)](https://travis-ci.org/apigeecs/apigee-deploy-grunt-plugin)
+
+![apigee-deploy-grunt-plugin](https://www.dropbox.com/s/5tgy3fpyud5skhv/Apigee%20Deploy%20Grunt%20Plugin%20logo2.png?dl=1 "apigee-deploy-grunt-plugin-logo")
+
+![apigee-deploy-grunt-terminal](https://www.dropbox.com/s/mkev4l0kmy3bvfw/apigee-deploy-grunt-plugin.gif?dl=1 "apigee-deploy-grunt-plugin-terminal")
+ 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
 
 - [Why do we need another tool to manage the API Development Lifecycle for Apigee?](#why-do-we-need-another-tool-to-manage-the-api-development-lifecycle-for-apigee)
@@ -18,44 +25,64 @@
 - [Continuous Integration with Jenkins](#continuous-integration-with-jenkins)
 - [API Static Code Analysis](#api-static-code-analysis)
   - [JSHint](#jshint)
-  - [ESHint](#eshint)
+  - [ESLint](#eshint)
 - [Reusability of code with Maven Plugins and shell scripts/command line tools](#reusability-of-code-with-maven-plugins-and-shell-scriptscommand-line-tools)
 - [Contributing](#contributing)
 
+TL;DR
+====
+Here's a [Slideshare presentation](http://www.slideshare.net/DiegoZuluaga2/apigee-deploy-grunt-plugin10) with the short version to get up and running in a few steps.
+[![apigee-deploy-grunt-plugin](https://www.dropbox.com/s/r2f7tq1n0wt208n/Apigee_deploy_grunt_plugin_1_0.png?dl=1)](http://www.slideshare.net/DiegoZuluaga2/apigee-deploy-grunt-plugin10)
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+# Why do we need a tool to manage the API Development Lifecycle for Apigee?
 
-# Why do we need another tool to manage the API Development Lifecycle for Apigee?
-
-* Shell scripts are good for small tasks, but they can become too complex to maintain and reuse as your API tasks grows. And Java, writing Maven plugins is no fun.
 * Pluggable environment (thousands of npm and grunt modules and plugins)
-* Grunt is perfect for adding those custom tasks in a heartbeat. See [Tasks directory](https://github.com/apigeecs/apigee-deploy-grunt-plugin/tree/master/tasks)
-* Pure JavaScript and Node.js. Enough said right :-)
-* Compresses Node.js (node_modules, resources, and public directories)
-* Support of JavaCallout Policies. Compiles, package and include Java library dependencies.
-* Compatible with all CI tools Jenkins, Bamboo, Go, Travis
-* Ready for TDD with Mocha.js and Chai. See [tests directory](https://github.com/apigeecs/apigee-deploy-grunt-plugin/tree/master/tests).
-* Includes static code analysis with [JSHint](http://www.jshint.com/) and [ESLint](http://eslint.org/)
-* Easier to troubleshoot. cURL command support. Just pass ```--curl=true```
-* Search and replace files content with RegEx, string patterns, or XPath. See string-replace and xmlpoke tasks in Gruntfile.js
-* Include files dynamically from common git submodule to promote DRY (Don't Repeat Yourself) principle (check search-and-replace.js entries)
-* Compatible with IDEs. See [Chrome Grunt Dev Tools](https://chrome.google.com/webstore/detail/grunt-devtools/fbiodiodggnlakggeeckkjccjhhjndnb?hl=en) and [Grunt Task Runner for Web Storm](http://www.jetbrains.com/webstorm/webhelp/using-grunt-task-runner.html)
-* It's Compatible with Maven. See tools to enable Proxy Dependency Maven Plugin. See pom.xml under [Tools directory](https://github.com/apigeecs/apigee-deploy-grunt-plugin/tree/master/tests)
+* Grunt is perfect for applying continuous improvement by easily adding custom tasks. See [Tasks directory](https://github.com/apigeecs/apigee-deploy-grunt-plugin/tree/master/grunt/tasks)
+* It's pure JavaScript running on Node.js. Enough said, right :-)
+* Deploys Node.js API Proxies (node_modules, resources, and public directories) see [Gruntfile.js compress task](https://github.com/apigeecs/apigee-deploy-grunt-plugin/blob/master/Gruntfile.js). Also support of [Apigee NPM API](http://apigee.com/docs/management/apis/post/organizations/%7Borg_name%7D/apis/%7Bapi_name%7D/revisions/%7Brevision_num%7D/npm)
+* Supports JavaCallout Policies. Compiles, package and include Java library dependencies.
+* It's ready for TDD with Mocha.js and Chai. See [tests directory](https://github.com/apigeecs/apigee-deploy-grunt-plugin/tree/master/tests).
+* Does static code analysis with [JSHint](http://www.jshint.com/) and [ESLint](http://eslint.org/). So, out-of-the-box, you get the ability to add custom rules that promote coding best practices in JavaScript. See [ESLint custom rules](https://gist.github.com/jareware/7179093)
+* Reviews JavaScript file complexity by leveraging [Grunt-Complexity](https://github.com/vigetlabs/grunt-complexity#grunt-complexity)
+* It's easier to troubleshoot. cURL command support. Just pass ```--curl=true```
+* Searches and replace files content with RegEx, string patterns, or XPath. See string-replace and xmlpoke tasks in Gruntfile.js
+* Includes files dynamically from common git submodule to promote DRY (Don't Repeat Yourself) principle (check search-and-replace.js entries)
+* It's compatible with most CI tools Jenkins, Bamboo, Go, and Travis
+* Sends automatic desktop notifications with [Grunt Notify](https://github.com/dylang/grunt-notify#screenshots)
+* It's compatible with IDEs. See [Chrome Grunt Dev Tools](https://chrome.google.com/webstore/detail/grunt-devtools/fbiodiodggnlakggeeckkjccjhhjndnb?hl=en) and [Grunt Task Runner for Web Storm](http://www.jetbrains.com/webstorm/webhelp/using-grunt-task-runner.html)
+* It's Compatible with Maven. So you can still run JMeter tests or single Maven tasks, if Mocha doesn't suit you needs, see **shell:run_jmeter_tests** target. [tools examples](https://github.com/apigeecs/apigee-deploy-grunt-plugin/tree/master/tools/forecastweather-jmeter-example).
 
 # Steps to get started
+**Prerequisites: Node.js and NPM**
 
-* **Step 1:**  setup Apigee Edge credentials as system environment variables ae_username and ae_password or just pass credentials as arguments
-* **Step 2:** install [grunt cli](http://gruntjs.com/getting-started#installing-the-cli) ```sudo npm install grunt-cli -g```
-* **Step 3:** execute ```npm install``` to install all grunt dependencies
-* **Step 4:** setup profiles element in apigee-config.js for each environment. Each environment will be referenced below as a flag e.g. --env={test, prod}
-* **Step 5:** setup config element in apigee-config.js for string replacements for each file
+**Optional tools: Git. You can still use this plugin without Git, however manual steps will be required to initialize common folder.**
+
+* **Step 1:** Clone this repo with Git. ```git clone https://github.com/apigeecs/apigee-deploy-grunt-plugin.git```
+If you don't have Git is installed, download this repo as a zip file and expand it somewhere in the filesytem.
+* **Step 2:** ```cd apigee-deploy-grunt-plugin```
+* **Step 3:** open apigee-deploy-grunt-plugin folder and execute the two commands:
+```
+git submodule init
+git submodule update
+
+```
+**These two commands initialize Git Submodules by downloading source to Common folder from common branch. Installation without Git requires to download common branch as a zip file and expand its content into common folder (common/apiproxy)**
+
+* **Step 4:**  setup Apigee Edge credentials as system environment variables ae_username and ae_password or just pass credentials as arguments
+* **Step 5:** install [grunt cli](http://gruntjs.com/getting-started#installing-the-cli) ```sudo npm install grunt-cli -g```
+* **Step 6:** execute ```npm install``` to install all grunt dependencies
+* **Step 7:** Edit and add environment to grunt/apigee-config.js file. Each environment will be referenced below as a flag e.g. --env={test, prod}
+* **Step 8:** Edit and add environments to grunt/search-and-replace-files.js for string replacements.
+* **Step 9:** run ```grunt --env=test --username={apigee_edge_email_address} --password={apigee_edge_password} --debug```
 
 # Supported tasks
 
 #### execute end-to-end lifecycle and overwrite revision (keep the same revision id)
-```grunt --env=test --username=$ae_username --password=$ae_password --debug --curl=true```
+```grunt --env=test --username={apigee_edge_email_address} --password={apigee_edge_password} --debug --curl=true```
 
-**Note: debug flag to includes API responses.**
+**Note: Pass --debug flag to display Management API responses.**
 
 #### Test what you just deployed
 Once previous is executed, you should be able to try the following calls:
@@ -89,7 +116,7 @@ https://{org-env}.apigee.net/{api-basepath}/tree.jpg
 Example ```https://testmyapi-test.apigee.net/weathergrunt/tree.jpg```
 
 ##### Use apigee gateway leveraging a JavaCallout policy
-**Disable by default. Read section below for enabling directions.**
+**Disabled by default. Read section below for enabling directions.**
 ```
 https://{org-env}.apigee.net/{api-basepath}/javacallout
 ```
@@ -118,7 +145,7 @@ Example ```curl https://testmyapi-test.apigee.net/weathergrunt/javacallout```
 ```grunt deleteApiRevision:{revision_id} --env=test --debug```
 
 #### configuration management
-See apigee-config.js file.
+See grunt/apigee-config.js file.
 
 #### builds zip bundle under target directory
 ```grunt compress --env=test```
@@ -179,10 +206,10 @@ Search and Replace Functionality
 ======
 
 ####String
-Ability to search and replace strings from text files that match any pattern in Regex or string. See conf/search-and-replace-files.js to setup per environment. This task leverages [grunt-string-replace module](https://www.npmjs.org/package/grunt-string-replace). See conf/search-and-replace-files.js for an example.
+Ability to search and replace strings from text files that match any pattern in Regex or string. See grunt/search-and-replace-files.js to setup per environment. This task leverages [grunt-string-replace module](https://www.npmjs.org/package/grunt-string-replace). See grunt/search-and-replace-files.js for an example.
 
 ####Include files from common Git submodule
-Ability to search and include content from files is also provided by string-replace task. See examples under conf/search-and-replace-files.js that include fragments from common folder for fragments (multiple steps), policies, and JavaScript files. Note common folder leverages [Git Submodule](http://git-scm.com/book/en/Git-Tools-Submodules), which resides in a separate branch under the same repository. This allows reusing code across multiple APIs without adding more complexity.
+Ability to search and include content from files is also provided by string-replace task. See examples under grunt/search-and-replace-files.js that include fragments from common folder for fragments (multiple steps), policies, and JavaScript files. Note common folder leverages [Git Submodule](http://git-scm.com/book/en/Git-Tools-Submodules), which resides in a separate branch under the same repository. This allows reusing code across multiple APIs without adding more complexity.
 
 Continuous Integration with Jenkins
 ======
@@ -197,7 +224,7 @@ JSHint
 JSHInt provides a large set of configurable (options)[http://www.jshint.com/docs/options/] that can be enabled out-of-the-box.
 See jshint task in Gruntfile.js
 
-ESHint
+ESLint
 --------
 ESLint provides an pluggable framework to enable static code analysis. In contrast to JSHint, ESLint can be extended to write custom API specific rules. See conf/rules/if-curly-formatting.js rule and conf/eslint.json to manage alerts.
 See ESLint Gruntfile.js section
@@ -209,6 +236,7 @@ Grunt plugin can be extended to support plugins, shell script or any other comma
 Contributing
 =====
 If you would like to contribute, simply fork the repository, push your changes to a branch and send a pull request:
+
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
